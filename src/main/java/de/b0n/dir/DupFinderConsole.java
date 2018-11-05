@@ -1,6 +1,7 @@
 package de.b0n.dir;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -49,28 +50,28 @@ class DupFinderConsole {
 
 		DateFormat timeInstance = SimpleDateFormat.getTimeInstance();
 		System.out.println("Begin finding lengths: " + timeInstance.format(new Date()));
-		Map<Long, List<File>> cluster = DuplicateLengthFinder.getResult(directory);
+		Map<Long, List<Path>> cluster = DuplicateLengthFinder.getResult(directory.toPath());
 		
 		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
 		cluster.values().parallelStream().map(DuplicateContentFinder::getResult).forEach(DupFinderConsole::printQueues);
 		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
     
-	private static void printQueues(Queue<List<File>> queues) {
-		for (Collection<File> files : queues) {
+	private static void printQueues(Queue<List<Path>> queues) {
+		for (Collection<Path> files : queues) {
 			printFiles(files);
 			System.out.println();
 		}
 	}
     
-	private static void printFiles(Collection<File> files) {
-		for (File file : files) {
+	private static void printFiles(Collection<Path> files) {
+		for (Path file : files) {
 			printFile(file);
 		}
 		System.out.println();
 	}
 
-	private static void printFile(File file) {
-		System.out.println(file.getAbsolutePath());
+	private static void printFile(Path file) {
+		System.out.println(file.toAbsolutePath());
 	}
 }

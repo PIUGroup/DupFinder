@@ -15,7 +15,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DupFinderConsoleTest extends de.b0n.dir.Test {
+public class DupFinderConsoleTest {
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyFolder";
     private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
@@ -61,9 +61,8 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	public void testDuplicates() {
 		System.setOut(printStream);
        	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	String output = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
-       	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
-       	assertListContainsLineEndingWith(lines, "Test1.txt");
-       	assertListContainsLineEndingWith(lines, "Test2.txt");
+       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
+       	assertTrue(lines.stream().anyMatch(string -> string.contains("Test1.txt")));
+       	assertTrue(lines.stream().anyMatch(string -> string.contains("Test2.txt")));
 	}
 }

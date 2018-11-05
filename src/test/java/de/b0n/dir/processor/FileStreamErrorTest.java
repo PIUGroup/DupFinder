@@ -1,26 +1,32 @@
 package de.b0n.dir.processor;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileStreamErrorTest {
-	private final File file = new File("");
+	private final Path path = Paths.get("");
 
 	@Mock
 	private BufferedInputStream stream;
 
 	@InjectMocks
-	private FileReader fileStream = new FileReader(file);
+	private FileReader fileStream = new FileReader(path);
 	
 	@Test
 	public void validRead() throws IOException {
@@ -40,7 +46,7 @@ public class FileStreamErrorTest {
 		try {
 			fileStream.read();
 		} catch (IllegalStateException e) {
-			assertEquals("Stream of " + file.getAbsolutePath() + " could not be read: No Message", e.getMessage());
+			assertEquals("Stream of " + path.toString() + " could not be read: No Message", e.getMessage());
 		}
 
 		verify(stream).read();

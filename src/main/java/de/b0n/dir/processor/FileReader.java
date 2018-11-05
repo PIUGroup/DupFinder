@@ -1,9 +1,10 @@
 package de.b0n.dir.processor;
 
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  */
 class FileReader {
 	/**
-	 * Datei wurde zuende gelesen
+	 * Datei wurde zu ende gelesen
 	 */
 	public static final int FINISHED = -1;
 	/**
@@ -23,32 +24,32 @@ class FileReader {
 	 */
 	public static final int FAILING = -2;
 
-	private final File file;
+	private final Path path;
 	private BufferedInputStream stream;
 
 	/**
 	 * Packt die Collection von Dateien in jeweils in einen FileStream,
 	 * zusammengefasst in einer Queue.
 	 * 
-	 * @param files
+	 * @param paths
 	 *            In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
-	public static List<FileReader> pack(Collection<File> files) {
-		return files.parallelStream().map(FileReader::new).collect(Collectors.toList());
+	public static List<FileReader> pack(Collection<Path> paths) {
+		return paths.parallelStream().filter(path -> !path.toFile().isDirectory()).map(FileReader::new).collect(Collectors.toList());
 	}
 
 	/**
 	 * Erzeugt das Objekt. Der Stream zum Auslesen wird lazy erst bei Bedarf
 	 * geöffnet.
 	 * 
-	 * @param file File, dessen Stream bearbeitet werden soll
+	 * @param path File, dessen Stream bearbeitet werden soll
 	 */
-	public FileReader(File file) {
-		if (file == null) {
+	public FileReader(Path path) {
+		if (path == null) {
 			throw new IllegalArgumentException("File may not be null.");
 		}
-		this.file = file;
+		this.path = path;
 	}
 
 	/**
@@ -56,9 +57,9 @@ class FileReader {
 	 * 
 	 * @return zum Stream-Initialisieren genutzes File
 	 */
-	public File clear() {
+	public Path clear() {
 		close();
-		return file;
+		return path;
 	}
 
 	/**
@@ -88,7 +89,7 @@ class FileReader {
 		int data = FAILING;
 		try {
 			if (stream == null) {
-				stream = new BufferedInputStream(new FileInputStream(file));
+				stream = new BufferedInputStream(Files.newInputStream(path, (OpenOption)null));
 			}
 			data = stream.read();
 		} catch (IOException | IllegalStateException e) {

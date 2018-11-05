@@ -1,6 +1,6 @@
 package de.b0n.dir.processor;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 public class DuplicateContentFinder implements Runnable {
 
 	private static final Function<FileReader, Integer> fileReaderToInt = FileReader::read;
-	private static final Function<FileReader, File> fileReaderToFile = FileReader::clear;
+	private static final Function<FileReader, Path> fileReaderToFile = FileReader::clear;
 	private static final Function<Collection<FileReader>, Stream<FileReader>> collection = Collection::parallelStream;
 	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = Entry::getValue;
 	private static final Predicate<Entry<Integer, List<FileReader>>> hasSingleItemInEntry = entry -> entry.getValue()
@@ -80,12 +80,12 @@ public class DuplicateContentFinder implements Runnable {
 	 *            sollen
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public static Queue<List<File>> getResult(final Collection<File> input) {
-		ConcurrentLinkedQueue<List<File>> result = new ConcurrentLinkedQueue<>();
+	public static Queue<List<Path>> getResult(final Collection<Path> input) {
+		Queue<List<Path>> result = new ConcurrentLinkedQueue<>();
 		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
 
 			@Override
-			public void duplicateGroup(List<File> duplicateGroup) {
+			public void duplicateGroup(List<Path> duplicateGroup) {
 				result.add(duplicateGroup);
 			}
 		};
@@ -106,7 +106,7 @@ public class DuplicateContentFinder implements Runnable {
 	 *            Callback, um über die Ergebnisse der Dublettensuche informiert zu
 	 *            werden
 	 */
-	public static void getResult(final Collection<File> input, final DuplicateContentFinderCallback callback) {
+	public static void getResult(final Collection<Path> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {
 			throw new IllegalArgumentException("input may not be null.");
 		}

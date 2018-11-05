@@ -1,6 +1,6 @@
 package de.b0n.dir.processor;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -15,18 +15,18 @@ public interface DuplicateContentFinderCallback {
 	 * Wird aufgerufen, sobald ein Fehler beim Lesen der Datei erkannt wurde
 	 * @param failedFile File mit Zugriffsfehler
 	 */
-	default void failedFile(File failedFile) {}
+	default void failedFile(Path failedFile) {}
 
 	/**
 	 * Wird aufgerufen, sobald eine einzigartige Datei erkannt wurde
 	 * @param uniqueFile File ohne Duplikat
 	 */
-	default void uniqueFile(File uniqueFile) {}
+	default void uniqueFile(Path uniqueFile) {}
 
 	/**
 	 * Wird aufgerufen, sobald eine Gruppe gleicher Dateien erkannt wurde
 	 * @param duplicateFiles Files mit demselben Inhalt
 	 */
-	default void duplicateGroup(List<File> duplicateFiles) {}
+	default void duplicateGroup(List<Path> duplicateFiles) {}
 
 }

@@ -5,13 +5,22 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.WatchEvent.Kind;
+import java.nio.file.WatchEvent.Modifier;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateContentFinderTest {
@@ -30,7 +39,7 @@ public class DuplicateContentFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noArgumentCallback() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
 		DuplicateContentFinder.getResult(input, null);
 	}
 
@@ -41,105 +50,230 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanFailingInputWithCallback() {
-		List<File> failfiles = new ArrayList<>();
-		final File file = new File(PATH_FILE_1A) {
-			private static final long serialVersionUID = 1L;
+		List<Path> failpaths = new ArrayList<>();
+		final Path path = new Path() {
 
-			public String getPath() {
+			@Override
+			public FileSystem getFileSystem() {
 				throw new IllegalStateException();
+			}
+
+			@Override
+			public boolean isAbsolute() {
+				return false;
+			}
+
+			@Override
+			public Path getRoot() {
+				return null;
+			}
+
+			@Override
+			public Path getFileName() {
+				return null;
+			}
+
+			@Override
+			public Path getParent() {
+				return null;
+			}
+
+			@Override
+			public int getNameCount() {
+				return 0;
+			}
+
+			@Override
+			public Path getName(int index) {
+				return null;
+			}
+
+			@Override
+			public Path subpath(int beginIndex, int endIndex) {
+				return null;
+			}
+
+			@Override
+			public boolean startsWith(Path other) {
+				return false;
+			}
+
+			@Override
+			public boolean startsWith(String other) {
+				return false;
+			}
+
+			@Override
+			public boolean endsWith(Path other) {
+				return false;
+			}
+
+			@Override
+			public boolean endsWith(String other) {
+				return false;
+			}
+
+			@Override
+			public Path normalize() {
+				return null;
+			}
+
+			@Override
+			public Path resolve(Path other) {
+				return null;
+			}
+
+			@Override
+			public Path resolve(String other) {
+				return null;
+			}
+
+			@Override
+			public Path resolveSibling(Path other) {
+				return null;
+			}
+
+			@Override
+			public Path resolveSibling(String other) {
+				return null;
+			}
+
+			@Override
+			public Path relativize(Path other) {
+				return null;
+			}
+
+			@Override
+			public URI toUri() {
+				return null;
+			}
+
+			@Override
+			public Path toAbsolutePath() {
+				return null;
+			}
+
+			@Override
+			public Path toRealPath(LinkOption... options) throws IOException {
+				return null;
+			}
+
+			@Override
+			public File toFile() {
+				return null;
+			}
+
+			@Override
+			public WatchKey register(WatchService watcher, Kind<?>[] events, Modifier... modifiers) throws IOException {
+				return null;
+			}
+
+			@Override
+			public WatchKey register(WatchService watcher, Kind<?>... events) throws IOException {
+				return null;
+			}
+
+			@Override
+			public Iterator<Path> iterator() {
+				return null;
+			}
+
+			@Override
+			public int compareTo(Path other) {
+				return 0;
 			}
 		};
 		
 		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
 
 			@Override
-			public void failedFile(File failedFile) {
-				failfiles.add(failedFile);
+			public void failedFile(Path failedPath) {
+				failpaths.add(failedPath);
 			}
 		};
 		
-		final List<File> input = new ArrayList<>();
-		input.add(file);
+		final List<Path> input = new ArrayList<>();
+		input.add(path);
 		DuplicateContentFinder.getResult(input, callback);
-		assertEquals(1, failfiles.size());
+		assertEquals(1, failpaths.size());
 	}
 
 	@Test
 	public void scanEmptyInput() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
-		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
+		final Queue<List<Path>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden: " + output.size(), output.isEmpty());
 	}
 
 	@Test
 	public void scanEmptyInputWithCallback() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
 		DuplicateContentFinder.getResult(input, FAILING_DCF_CALLBACK);
 	}
 
 	@Test
 	public void scanSingleInput() {
-		final File file = new File(PATH_FILE_1A);
-		final List<File> input = new ArrayList<>();
-		input.add(file);
-		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
+		final Path path = Paths.get(PATH_FILE_1A);
+		final List<Path> input = new ArrayList<>();
+		input.add(path);
+		final Queue<List<Path>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
 	}
 
 	@Test
 	public void scanSingleDuplicateInput() {
-		final File file1 = new File(PATH_FILE_1A);
-		final File file2 = new File(PATH_FILE_1B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
-		input.add(file1);
-		input.add(file2);
-		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
+		final Path path1 = Paths.get(PATH_FILE_1A);
+		final Path path2 = Paths.get(PATH_FILE_1B);
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
+		input.add(path1);
+		input.add(path2);
+		final Queue<List<Path>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 1, output.size());
 		assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 2, output.peek().size());
 		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
-				output.peek().get(0).getAbsolutePath().endsWith("Test1.txt"));
+				output.peek().get(0).endsWith("Test1.txt"));
 	}
 
 	@Test
 	public void scanDoubleDuplicateInput() {
-		final File file1 = new File(PATH_FILE_1A);
-		final File file2 = new File(PATH_FILE_1B);
-		final File file3 = new File(PATH_FILE_2A);
-		final File file4 = new File(PATH_FILE_2B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
-		input.add(file1);
-		input.add(file3);
-		input.add(file4);
-		input.add(file2);
-		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
+		final Path path1 = Paths.get(PATH_FILE_1A);
+		final Path path2 = Paths.get(PATH_FILE_1B);
+		final Path path3 = Paths.get(PATH_FILE_2A);
+		final Path path4 = Paths.get(PATH_FILE_2B);
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
+		input.add(path1);
+		input.add(path3);
+		input.add(path4);
+		input.add(path2);
+		final Queue<List<Path>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertEquals("Es müssen zwei Ergebnisse zurück gegeben werden", 2, output.size());
-		List<File> group1 = output.remove();
-		List<File> group2 = output.remove();
+		List<Path> group1 = output.remove();
+		List<Path> group2 = output.remove();
 		assertEquals("Es müssen zwei Ergebnisse mit zwei Dubletten zurück gegeben werden", 2, group1.size());
 		assertEquals("Es müssen zwei Ergebnisse mit zwei Dubletten zurück gegeben werden", 2, group2.size());
 		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
-				group1.get(0).getAbsolutePath().endsWith("Test1.txt") || group2.get(0).getAbsolutePath().endsWith("Test1.txt"));
+				group1.get(0).endsWith("Test1.txt") || group2.get(0).endsWith("Test1.txt"));
 		assertTrue("Es muss ein Ergebnis Test2.txt zurück gegeben werden",
-				group1.get(0).getAbsolutePath().endsWith("Test2.txt") || group2.get(0).getAbsolutePath().endsWith("Test2.txt"));
+				group1.get(0).endsWith("Test2.txt") || group2.get(0).endsWith("Test2.txt"));
 	}
 
 	@Test
 	public void scanDuplicateInputWithCallback() {
-		final List<List<File>> duplicateList = new ArrayList<>();
-		final File file1 = new File(PATH_FILE_1A);
-		final File file2 = new File(PATH_FILE_1B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
-		input.add(file1);
-		input.add(file2);
+		final List<List<Path>> duplicateList = new ArrayList<>();
+		final Path path1 = Paths.get(PATH_FILE_1A);
+		final Path path2 = Paths.get(PATH_FILE_1B);
+		final Queue<Path> input = new ConcurrentLinkedQueue<Path>();
+		input.add(path1);
+		input.add(path2);
 		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
 
 			@Override
-			public void duplicateGroup(List<File> duplicateFiles) {
-				duplicateList.add(duplicateFiles);
+			public void duplicateGroup(List<Path> duplicatePaths) {
+				duplicateList.add(duplicatePaths);
 			}
 		};
 
@@ -148,8 +282,8 @@ public class DuplicateContentFinderTest {
 		assertEquals(1, duplicateList.size());
 		assertEquals(2, duplicateList.get(0).size());
 		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
-				duplicateList.get(0).get(0).getAbsolutePath().endsWith("Test1.txt"));
-		assertTrue(duplicateList.get(0).contains(file1));
-		assertTrue(duplicateList.get(0).contains(file2));
+				duplicateList.get(0).get(0).endsWith("Test1.txt"));
+		assertTrue(duplicateList.get(0).contains(path1));
+		assertTrue(duplicateList.get(0).contains(path2));
 	}
 }

@@ -1,12 +1,20 @@
 package de.b0n.dir.processor;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import static org.junit.Assert.*;
 
 /**
  * Created by huluvu424242 on 06.01.17.
@@ -16,13 +24,13 @@ public class FileStreamTest {
 	private static final String PATH_VALID_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_INVALID_FILE = "src/test/resources/Testxxx1.txt";
 
-	private File textFile = null;
+	private Path textFile = null;
 	private FileReader fileStream = null;
 
 	@Before
 	public void setUp() {
-		textFile = new File(PATH_VALID_FILE);
-		assertTrue(textFile.exists());
+		textFile = Paths.get(PATH_VALID_FILE);
+		assertTrue(textFile.toFile().exists());
 
 	}
 
@@ -43,8 +51,8 @@ public class FileStreamTest {
 
 	@Test
 	public void createInstanceFromInvalidFile() {
-		final File invalidFile = new File(PATH_INVALID_FILE);
-		assertFalse(invalidFile.exists());
+		final Path invalidFile = Paths.get(PATH_INVALID_FILE);
+		assertFalse(invalidFile.toFile().exists());
 		final FileReader fileStream = new FileReader(invalidFile);
 		assertEquals(FileReader.FAILING, fileStream.read());
 	}
@@ -75,7 +83,7 @@ public class FileStreamTest {
 		final FileReader stream = new FileReader(textFile);
 		assertNotNull(stream);
 		assertSame(textFile, stream.clear());
-		assertEquals("wrong file size", 91, stream.clear().length());
+		assertEquals("wrong file size", 91, Files.size(stream.clear()));
 	}
 
 	@Test

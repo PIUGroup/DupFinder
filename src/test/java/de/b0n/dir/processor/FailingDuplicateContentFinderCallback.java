@@ -2,23 +2,23 @@ package de.b0n.dir.processor;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.List;
 
 public class FailingDuplicateContentFinderCallback implements DuplicateContentFinderCallback {
 
 	@Override
-	public void uniqueFile(File uniqueFile) {
+	public void uniqueFile(Path uniqueFile) {
 		fail();
 	}
 
 	@Override
-	public void failedFile(File failedFile) {
+	public void failedFile(Path failedFile) {
 		fail();
 	}
 
 	@Override
-	public void duplicateGroup(List<File> queue) {
+	public void duplicateGroup(List<Path> queue) {
 		fail();
 	}
 }
